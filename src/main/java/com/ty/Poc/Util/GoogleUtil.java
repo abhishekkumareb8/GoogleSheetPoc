@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
-import java.time.temporal.ValueRange;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,7 +29,10 @@ import com.google.api.services.sheets.v4.model.Sheet;
 import com.google.api.services.sheets.v4.model.SheetProperties;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import com.ty.Poc.Dao.Dto;
+import com.ty.Poc.Dao.GoogleSheetDto;
+import com.ty.Poc.Dao.GoogleSheetresponseDTO;
 
 @Component
 public class GoogleUtil{
@@ -46,13 +48,7 @@ public class GoogleUtil{
 	      Arrays.asList(SheetsScopes.SPREADSHEETS,SheetsScopes.DRIVE);
 	  private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
-	  /**
-	   * Creates an authorized Credential object.
-	   *
-	   * @param HTTP_TRANSPORT The network HTTP Transport.
-	   * @return An authorized Credential object.
-	   * @throws IOException If the credentials.json file cannot be found.
-	   */
+	  
 	  private static com.google.api.client.auth.oauth2.Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
 	      throws IOException {
 	    // Load client secrets.
@@ -63,7 +59,6 @@ public class GoogleUtil{
 	    GoogleClientSecrets clientSecrets =
 	        GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-	    // Build flow and trigger user authorization request.
 	    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 	        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
 	        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File( TOKENS_DIRECTORY_PATH)))
@@ -88,21 +83,12 @@ public class GoogleUtil{
 		    } else {
 		      System.out.println("Name, Major");
 		      for (List row : values) {
-		        // Print columns A and E, which correspond to indices 0 and 4.
 		    	  storeDataFromGoogleSheet.put(row.get(0),row.get(4));
-//		        System.out.printf("%s, %s\n", row.get(0), row.get(4));
 		      }
 		    }
 		    return storeDataFromGoogleSheet;
 	  }
-	  /**
-	   * Prints the names and majors of students in a sample spreadsheet:
-	   * https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-	   */
-//	  public static void main(String... args) throws IOException, GeneralSecurityException {
-//	    // Build a new authorized API client service.
-//	    
-//	  }
+	  
 
 	private Sheets getSheetService() throws GeneralSecurityException, IOException {
 		final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -112,15 +98,32 @@ public class GoogleUtil{
 		        .build();
 		return service;
 	}
-	public String createSheet(Dto dto) throws GeneralSecurityException, IOException
-	{
-		 Sheets service = getSheetService();
-		 SpreadsheetProperties properties=new SpreadsheetProperties();
-		 properties.setTitle(dto.getSheetName());
-		 SheetProperties properties2=new SheetProperties().setTitle(dto.getSheetName());
-		 Sheet sheet=new Sheet().setProperties(properties2);
-		 Spreadsheet spreadsheet=new Spreadsheet().setProperties(properties).setSheets(Collections.singletonList(sheet));
-		 return service.spreadsheets().create(spreadsheet).execute().getSpreadsheetUrl();
-		
+	public GoogleSheetresponseDTO createGoogleSheet(GoogleSheetDto request)
+			throws GeneralSecurityException, IOException {
+		Sheets service = getSheetService();
+		SpreadsheetProperties properties = new SpreadsheetProperties();
+		properties.setTitle(request.getSheetName());
+		SheetProperties sheetProperties = new SheetProperties();
+		// setTitle("demo") will come below the sheet
+		sheetProperties.setTitle(request.getSheetName());
+		Sheet sheet = new Sheet().setProperties(sheetProperties);
+		Spreadsheet spreadsheet = new Spreadsheet().setProperties(properties)
+				.setSheets(Collections.singletonList(sheet));
+
+		Spreadsheet createdResponse = service.spreadsheets().create(spreadsheet).execute();
+		GoogleSheetresponseDTO dto = new GoogleSheetresponseDTO();
+
+		// to insert data
+		ValueRange data = new ValueRange().setValues(request.getDataToBeUpdated());
+		// A1 first row first column
+		service.spreadsheets().values().update(createdResponse.getSpreadsheetId(), "A:Z", data)
+				.setValueInputOption("RAW").execute();
+
+		dto.setSspreadSheetid(createdResponse.getSpreadsheetId());
+		dto.setSpreadSheetURL(createdResponse.getSpreadsheetUrl());
+		return dto;
+
+//		return service.spreadsheets().create(spreadsheet).execute().getSpreadsheetUrl(); 
+
 	}
 }

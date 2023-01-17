@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ty.Poc.Dao.Dto;
+import com.ty.Poc.Dao.GoogleSheetDto;
+import com.ty.Poc.Dao.GoogleSheetresponseDTO;
 import com.ty.Poc.Util.GoogleUtil;
 
 @Service
@@ -21,9 +23,8 @@ public class GoogleApiService {
 		
 	}
 
-	public String createSheet(Dto dto) throws GeneralSecurityException, IOException {
-		return googleUtil.createSheet(dto);
-		
+	public GoogleSheetresponseDTO creategoogleSheet(GoogleSheetDto request) throws GeneralSecurityException, IOException {
+		return googleUtil.createGoogleSheet(request);
 	}
 
 }

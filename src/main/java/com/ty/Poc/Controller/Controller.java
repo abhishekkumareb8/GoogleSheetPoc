@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.ty.Poc.Dao.Dto;
+import com.ty.Poc.Dao.GoogleSheetDto;
+import com.ty.Poc.Dao.GoogleSheetresponseDTO;
 import com.ty.Poc.Service.GoogleApiService;
 
 import ch.qos.logback.core.model.Model;
@@ -30,17 +32,15 @@ public class Controller {
 
 	@Autowired
 	GoogleApiService apiService;
-	
-@GetMapping("/getdata")
-public Map<Object, Object> dataFromSheet() throws GeneralSecurityException, IOException
-{
-	return apiService.readDataFromGoogleSheet();
-}
-	
-@GetMapping("/createdata")
-public String create(@RequestBody Dto dto) throws GeneralSecurityException, IOException
-{
-	return apiService.createSheet(dto);
-	
-}
+
+	@GetMapping("/getdata")
+	public Map<Object, Object> dataFromSheet() throws GeneralSecurityException, IOException {
+		return apiService.readDataFromGoogleSheet();
+	}
+
+	@PostMapping("/createsheet")
+	public GoogleSheetresponseDTO createGoogleSheet(@RequestBody GoogleSheetDto dto)
+			throws GeneralSecurityException, IOException {
+		return apiService.creategoogleSheet(dto);
+	}
 }
