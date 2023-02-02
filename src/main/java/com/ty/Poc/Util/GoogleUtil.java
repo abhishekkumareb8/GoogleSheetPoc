@@ -61,7 +61,7 @@ public class GoogleUtil{
 
 	    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 	        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-	        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File( TOKENS_DIRECTORY_PATH)))
+	        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File( System.getProperty("user.home"), TOKENS_DIRECTORY_PATH)))
 	        .setAccessType("offline")
 	        .build();
 	    LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
@@ -70,8 +70,8 @@ public class GoogleUtil{
 
 	  public Map<Object, Object> getDataFromSheet() throws GeneralSecurityException, IOException
 	  {
-		    final String spreadsheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms";
-		    final String range = "Class Data!A2:F";
+		    final String spreadsheetId = "1wRw5GXbFVl8sm9yWmV05mh2KdNbEANFhlt3iNF_lXZI";
+		    final String range = "A:F";
 		    Sheets service = getSheetService();
 		    com.google.api.services.sheets.v4.model.ValueRange response = service.spreadsheets().values()
 		        .get(spreadsheetId, range)
